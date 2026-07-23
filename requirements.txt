@@ -1,0 +1,5 @@
+PySide6>=6.6
+spotipy>=2.23
+requests>=2.31
+syncedlyrics>=0.7
+pyinstaller>=6.0   # behovs bara for att bygga .exe (build.bat)
