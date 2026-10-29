@@ -77,7 +77,8 @@ class Controller:
     def _start_lyrics_fetch(self, item):
         """Starts a lyrics search in a background thread (doesn't block the window)."""
         title = item["name"]
-        artist = ", ".join(a["name"] for a in item["artists"])
+        artists = [a["name"] for a in item["artists"]]
+        artist = ", ".join(artists)
         album = item.get("album", {}).get("name", "")
         duration = (item.get("duration_ms") or 0) / 1000.0
         track_id = item.get("id")
@@ -94,7 +95,7 @@ class Controller:
 
         def work():
             try:
-                synced = self.lyrics.get_synced(title, artist, album, duration)
+                synced = self.lyrics.get_synced(title, artists, album, duration)
             except Exception as exc:  # noqa: BLE001
                 print("   error while searching for lyrics:", exc)
                 synced = None
