@@ -1,19 +1,19 @@
-# Privat konfiguration – innehåller dina Spotify-nycklar. Ska ALDRIG laddas upp.
+# Private config – contains your Spotify keys. Must NEVER be uploaded.
 config.py
 
-# Spotify-inloggning (access/refresh tokens) – privat.
+# Spotify login (access/refresh tokens) – private.
 .spotify_cache
 
 # Python
 __pycache__/
 *.pyc
 
-# Byggartefakter (skapas av build.bat / PyInstaller)
+# Build artifacts (created by build.bat / PyInstaller)
 build/
 dist/
 
-# WSL/Windows-skräpfiler
+# WSL/Windows junk files
 *:Zone.Identifier
 
-# Lokala Claude Code-inställningar
+# Local Claude Code settings
 .claude/

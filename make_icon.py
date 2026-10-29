@@ -1,8 +1,8 @@
-"""Skapar app.ico till .exe-bygget. Kör en gång på Windows:  python make_icon.py
+"""Creates app.ico for the .exe build. Run once on Windows:  python make_icon.py
 
-Vill du ha en EGEN ikon? Lägg en bildfil som heter `custom_icon.png` i den här
-mappen (helst kvadratisk, t.ex. 256x256). Då används den istället för
-standardikonen. Ta bort filen för att gå tillbaka till standard.
+Want your OWN icon? Put an image file named `custom_icon.png` in this
+folder (preferably square, e.g. 256x256). It will be used instead of the
+default icon. Delete the file to go back to the default.
 """
 
 import os
@@ -17,22 +17,22 @@ CUSTOM_IMAGE = "custom_icon.png"
 
 
 def main():
-    QApplication(sys.argv)  # krävs för att kunna rita/ladda bilder
+    QApplication(sys.argv)  # required to draw/load images
 
     if os.path.exists(CUSTOM_IMAGE):
         pixmap = QPixmap(CUSTOM_IMAGE)
         if pixmap.isNull():
-            print(f"Kunde inte läsa {CUSTOM_IMAGE} – använder standardikonen.")
+            print(f"Could not read {CUSTOM_IMAGE} – using the default icon.")
             pixmap = render_pixmap(256)
         else:
-            print(f"Använder din egen bild: {CUSTOM_IMAGE}")
+            print(f"Using your own image: {CUSTOM_IMAGE}")
     else:
         pixmap = render_pixmap(256)
 
     if pixmap.save("app.ico", "ICO"):
-        print("Skapade app.ico")
+        print("Created app.ico")
         return 0
-    print("Kunde inte skapa app.ico (bygget funkar ändå, men utan egen ikon).")
+    print("Could not create app.ico (the build still works, just without a custom icon).")
     return 1
 
 

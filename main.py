@@ -1,7 +1,7 @@
-"""Spotify Lyrics Overlay — flytande, synkad undertext för Spotify.
+"""Spotify Lyrics Overlay — floating, synced subtitles for Spotify.
 
-Kör med Windows-Python (inte i WSL):  python main.py
-Se README.md för full installation och hur man bygger en .exe.
+Run with Windows Python (not in WSL):  python main.py
+See README.md for full setup and how to build an .exe.
 """
 
 import bisect
@@ -20,9 +20,9 @@ from settings_window import SettingsWindow
 from spotify_client import SpotifyClient
 from lyrics_provider import LyricsProvider, parse_lrc
 
-POLL_MS = 2000       # hur ofta vi frågar Spotify "vad spelas?"
-TICK_MS = 100        # hur ofta vi uppdaterar vilken rad som visas
-LYRICS_TIMEOUT = 25  # ge upp textsökningen efter så här många sekunder
+POLL_MS = 2000       # how often we ask Spotify "what's playing?"
+TICK_MS = 100        # how often we update which line is shown
+LYRICS_TIMEOUT = 25  # give up the lyrics search after this many seconds
 
 
 class Controller:
@@ -33,18 +33,18 @@ class Controller:
         self.settings = settings
 
         self.track_id = None
-        self.lines = []          # [(sekund, text), ...]
-        self._times = []         # bara tiderna, för snabb sökning
+        self.lines = []          # [(seconds, text), ...]
+        self._times = []         # just the timestamps, for fast lookup
         self.no_lyrics = False
 
         self.is_playing = False
-        self.base_progress = 0.0   # låtens position (sek) vid senaste poll
+        self.base_progress = 0.0   # track position (sec) at the last poll
         self.base_time = time.monotonic()
 
-        # Textsökning sker i en bakgrundstråd så fönstret aldrig fryser
+        # Lyrics are fetched in a background thread so the window never freezes
         self._lyrics_lock = threading.Lock()
-        self._lyrics_result = None       # (track_id, lrc-sträng) satt av tråden
-        self._pending_track = None       # vilken låt vi väntar text för
+        self._lyrics_result = None       # (track_id, lrc string) set by the thread
+        self._pending_track = None       # which track we are waiting for lyrics for
         self._lyrics_started = 0.0
 
         self.poll_timer = QTimer()
@@ -55,13 +55,13 @@ class Controller:
         self.tick_timer.timeout.connect(self.tick)
         self.tick_timer.start(TICK_MS)
 
-        self.poll()  # gör en första hämtning direkt
+        self.poll()  # do a first fetch right away
 
     def poll(self):
         playback = self.spotify.current_playback()
         if not playback or not playback.get("item"):
             self.is_playing = False
-            self.overlay.set_lines("", "")  # helt osynlig när inget spelas
+            self.overlay.set_lines("", "")  # fully invisible when nothing is playing
             return
 
         item = playback["item"]
@@ -75,17 +75,17 @@ class Controller:
             self._start_lyrics_fetch(item)
 
     def _start_lyrics_fetch(self, item):
-        """Startar textsökning i en bakgrundstråd (blockerar inte fönstret)."""
+        """Starts a lyrics search in a background thread (doesn't block the window)."""
         title = item["name"]
         artist = ", ".join(a["name"] for a in item["artists"])
         album = item.get("album", {}).get("name", "")
         duration = (item.get("duration_ms") or 0) / 1000.0
         track_id = item.get("id")
 
-        print(f"▶ Spelar nu: {title} — {artist}")
-        print("   söker text…")
+        print(f"▶ Now playing: {title} — {artist}")
+        print("   searching for lyrics…")
 
-        # Nollställ direkt så gammal text försvinner vid låtbyte
+        # Reset right away so old lyrics disappear on track change
         self.lines = []
         self._times = []
         self.no_lyrics = False
@@ -96,7 +96,7 @@ class Controller:
             try:
                 synced = self.lyrics.get_synced(title, artist, album, duration)
             except Exception as exc:  # noqa: BLE001
-                print("   fel vid textsökning:", exc)
+                print("   error while searching for lyrics:", exc)
                 synced = None
             with self._lyrics_lock:
                 self._lyrics_result = (track_id, synced)
@@ -104,25 +104,25 @@ class Controller:
         threading.Thread(target=work, daemon=True).start()
 
     def _check_lyrics(self):
-        """Körs på huvudtråden – plockar upp resultat från bakgrundstråden."""
+        """Runs on the main thread – picks up results from the background thread."""
         with self._lyrics_lock:
             result = self._lyrics_result
             self._lyrics_result = None
 
         if result is not None:
             track_id, synced = result
-            if track_id == self.track_id:  # ignorera svar för en redan bytt låt
+            if track_id == self.track_id:  # ignore results for a track that has already changed
                 self.lines = parse_lrc(synced)
                 self._times = [t for t, _ in self.lines]
                 self.no_lyrics = not self.lines
                 self._pending_track = None
                 if self.no_lyrics:
-                    print("   (ingen synkad text hittades för den här låten)")
+                    print("   (no synced lyrics found for this track)")
                 else:
-                    print(f"   text hittad ({len(self.lines)} rader)")
+                    print(f"   lyrics found ({len(self.lines)} lines)")
         elif self._pending_track is not None:
             if time.monotonic() - self._lyrics_started > LYRICS_TIMEOUT:
-                print("   textsökningen tog för lång tid – hoppar över")
+                print("   lyrics search took too long – skipping")
                 self._pending_track = None
                 self.no_lyrics = True
 
@@ -132,15 +132,15 @@ class Controller:
         if not self.is_playing:
             return
         if not self.lines:
-            self.overlay.set_lines("", "")  # inga rader → osynlig (se loggen för info)
+            self.overlay.set_lines("", "")  # no lines → invisible (see the log for info)
             return
 
-        # Synk-justering: + gör att texten byts tidigare
+        # Sync offset: + makes lines change earlier
         position = (self.base_progress
                     + (time.monotonic() - self.base_time)
                     + self.settings.sync_offset)
 
-        # Sista raden vars tidsstämpel <= nuvarande position
+        # Last line whose timestamp <= current position
         idx = bisect.bisect_right(self._times, position) - 1
         current = self.lines[idx][1] if idx >= 0 else ""
         nxt = self.lines[idx + 1][1] if 0 <= idx + 1 < len(self.lines) else ""
@@ -148,7 +148,7 @@ class Controller:
 
 
 def _setup_logging():
-    """Som .exe (--windowed) finns ingen konsol → logga till fil istället."""
+    """As an .exe (--windowed) there is no console → log to a file instead."""
     if getattr(sys, "frozen", False):
         try:
             log = open(os.path.join(app_data_dir(), "log.txt"), "a",
@@ -163,24 +163,24 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("SpotifyLyricsOverlay")
     app.setWindowIcon(app_qicon())
-    # Appen ska leva kvar i aktivitetsfältet även när inställningsfönstret stängs
+    # Keep the app alive in the system tray even when the settings window is closed
     app.setQuitOnLastWindowClosed(False)
 
     _setup_logging()
-    print("=== Spotify Lyrics Overlay startar ===")
+    print("=== Spotify Lyrics Overlay starting ===")
 
     settings = Settings.load()
 
-    print("Loggar in på Spotify (en webbläsare kan öppnas första gången)...")
+    print("Logging in to Spotify (a browser may open the first time)...")
     try:
         spotify = SpotifyClient()
     except Exception as exc:  # noqa: BLE001
-        print("Kunde inte starta Spotify-inloggning:", exc)
-        print("Har du skapat config.py? Se README.md.")
+        print("Could not start Spotify login:", exc)
+        print("Have you created config.py? See README.md.")
         return 1
 
-    print("Inloggad. Overlay-fönstret och aktivitetsfält-ikonen är igång.")
-    print("Öppna inställningar via ikonen nere vid klockan, eller högerklicka på texten.")
+    print("Logged in. The overlay window and tray icon are running.")
+    print("Open settings via the icon by the clock, or right-click the lyrics.")
 
     settings_window = SettingsWindow(settings)
     overlay = OverlayWindow(settings, on_open_settings=settings_window.show_raise)
@@ -188,13 +188,13 @@ def main():
 
     controller = Controller(overlay, spotify, LyricsProvider(), settings)
 
-    # Aktivitetsfält-ikon (system tray)
+    # System tray icon
     tray = QSystemTrayIcon(app_qicon())
     tray.setToolTip("Spotify Lyrics Overlay")
     tray_menu = QMenu()
-    tray_menu.addAction("Inställningar…", settings_window.show_raise)
+    tray_menu.addAction("Settings…", settings_window.show_raise)
     tray_menu.addSeparator()
-    tray_menu.addAction("Avsluta", app.quit)
+    tray_menu.addAction("Quit", app.quit)
     tray.setContextMenu(tray_menu)
     tray.activated.connect(
         lambda reason: settings_window.show_raise()
@@ -202,7 +202,7 @@ def main():
     )
     tray.show()
 
-    # Håll allt vid liv (annars städar Python bort objekten → timrarna dör)
+    # Keep everything alive (otherwise Python garbage-collects the objects → timers die)
     app._keepalive = (overlay, controller, settings_window, tray, settings)
 
     return app.exec()

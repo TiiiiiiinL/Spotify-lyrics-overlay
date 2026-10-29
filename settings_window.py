@@ -1,4 +1,4 @@
-"""Inställningsfönstret — justera overlayn live med reglage och färgval."""
+"""The settings window — adjust the overlay live with sliders and color pickers."""
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
@@ -20,14 +20,14 @@ class SettingsWindow(QWidget):
     def __init__(self, settings):
         super().__init__()
         self.settings = settings
-        self.setWindowTitle("Inställningar – Spotify Lyrics Overlay")
+        self.setWindowTitle("Settings – Spotify Lyrics Overlay")
         self.setMinimumWidth(380)
 
         layout = QVBoxLayout(self)
         form = QFormLayout()
         layout.addLayout(form)
 
-        # Textstorlek
+        # Text size
         self.size_slider = QSlider(Qt.Horizontal)
         self.size_slider.setRange(14, 96)
         self.size_slider.setValue(settings.font_size)
@@ -36,22 +36,22 @@ class SettingsWindow(QWidget):
         size_row.addWidget(self.size_slider)
         size_row.addWidget(self.size_label)
         self.size_slider.valueChanged.connect(self._on_size)
-        form.addRow("Textstorlek", size_row)
+        form.addRow("Text size", size_row)
 
-        # Textfärg / konturfärg
+        # Text color / outline color
         self.text_color_btn = QPushButton()
         self.text_color_btn.clicked.connect(self._pick_text_color)
-        form.addRow("Textfärg", self.text_color_btn)
+        form.addRow("Text color", self.text_color_btn)
 
         self.outline_color_btn = QPushButton()
         self.outline_color_btn.clicked.connect(self._pick_outline_color)
-        form.addRow("Konturfärg", self.outline_color_btn)
+        form.addRow("Outline color", self.outline_color_btn)
 
-        # Bakgrund + genomskinlighet
-        self.bg_check = QCheckBox("Visa mörk platta bakom texten")
+        # Background + transparency
+        self.bg_check = QCheckBox("Show dark backdrop behind the lyrics")
         self.bg_check.setChecked(settings.show_bg)
         self.bg_check.toggled.connect(self._on_bg_toggle)
-        form.addRow("Bakgrund", self.bg_check)
+        form.addRow("Background", self.bg_check)
 
         self.opacity_slider = QSlider(Qt.Horizontal)
         self.opacity_slider.setRange(0, 100)
@@ -60,31 +60,31 @@ class SettingsWindow(QWidget):
         self.opacity_slider.valueChanged.connect(
             lambda v: self.settings.update(bg_opacity=v)
         )
-        form.addRow("Genomskinlighet", self.opacity_slider)
+        form.addRow("Opacity", self.opacity_slider)
 
-        self.fit_check = QCheckBox("Anpassa bredden efter texten")
+        self.fit_check = QCheckBox("Fit width to the text")
         self.fit_check.setToolTip(
-            "Av: plattan är lika bred som fönstret.\n"
-            "På: plattan krymper till den rad som visas just nu."
+            "Off: the backdrop is as wide as the window.\n"
+            "On: the backdrop shrinks to the line currently shown."
         )
         self.fit_check.setChecked(settings.bg_fit_text)
         self.fit_check.setEnabled(settings.show_bg)
         self.fit_check.toggled.connect(lambda v: self.settings.update(bg_fit_text=v))
-        form.addRow("Bredd", self.fit_check)
+        form.addRow("Width", self.fit_check)
 
-        # Nästa rad + radavstånd
-        self.next_check = QCheckBox("Visa kommande rad")
+        # Next line + line spacing
+        self.next_check = QCheckBox("Show upcoming line")
         self.next_check.setChecked(settings.show_next)
         self.next_check.toggled.connect(lambda v: self.settings.update(show_next=v))
-        form.addRow("Nästa rad", self.next_check)
+        form.addRow("Next line", self.next_check)
 
         self.gap_slider = QSlider(Qt.Horizontal)
         self.gap_slider.setRange(0, 60)
         self.gap_slider.setValue(settings.line_gap)
         self.gap_slider.valueChanged.connect(lambda v: self.settings.update(line_gap=v))
-        form.addRow("Radavstånd", self.gap_slider)
+        form.addRow("Line spacing", self.gap_slider)
 
-        # Synk-justering
+        # Sync offset
         self.sync_spin = QDoubleSpinBox()
         self.sync_spin.setRange(-3.0, 3.0)
         self.sync_spin.setSingleStep(0.1)
@@ -93,21 +93,21 @@ class SettingsWindow(QWidget):
         self.sync_spin.valueChanged.connect(
             lambda v: self.settings.update(sync_offset=round(v, 1))
         )
-        form.addRow("Synk-justering", self.sync_spin)
+        form.addRow("Sync offset", self.sync_spin)
 
-        hint = QLabel("+ = texten byts tidigare, − = senare")
+        hint = QLabel("+ = lines change earlier, − = later")
         hint.setStyleSheet("color: gray; font-size: 11px;")
         layout.addWidget(hint)
 
-        # Återställ
-        reset_btn = QPushButton("Återställ till standard")
+        # Reset
+        reset_btn = QPushButton("Reset to defaults")
         reset_btn.clicked.connect(self.settings.reset)
         layout.addWidget(reset_btn)
 
         self._refresh_color_buttons()
         settings.changed.connect(self._sync_from_settings)
 
-    # ---- Händelser ------------------------------------------------------
+    # ---- Events ---------------------------------------------------------
 
     def _on_size(self, value):
         self.size_label.setText(str(value))
@@ -120,7 +120,7 @@ class SettingsWindow(QWidget):
 
     def _pick_text_color(self):
         color = QColorDialog.getColor(
-            QColor(self.settings.text_color), self, "Välj textfärg"
+            QColor(self.settings.text_color), self, "Choose text color"
         )
         if color.isValid():
             self.settings.update(text_color=color.name())
@@ -128,7 +128,7 @@ class SettingsWindow(QWidget):
 
     def _pick_outline_color(self):
         color = QColorDialog.getColor(
-            QColor(self.settings.outline_color), self, "Välj konturfärg"
+            QColor(self.settings.outline_color), self, "Choose outline color"
         )
         if color.isValid():
             self.settings.update(outline_color=color.name())
@@ -143,7 +143,7 @@ class SettingsWindow(QWidget):
         self.outline_color_btn.setStyleSheet(f"background:{outline_c}; color:white;")
 
     def _sync_from_settings(self):
-        """Håll kontrollerna i synk om värden ändras utanför fönstret (+/- eller Återställ)."""
+        """Keep the controls in sync if values change outside the window (+/- or Reset)."""
         s = self.settings
         for widget, value in (
             (self.size_slider, s.font_size),
@@ -168,7 +168,7 @@ class SettingsWindow(QWidget):
         self._refresh_color_buttons()
 
     def show_raise(self):
-        """Visa fönstret och ta det längst fram."""
+        """Show the window and bring it to the front."""
         self.show()
         self.raise_()
         self.activateWindow()

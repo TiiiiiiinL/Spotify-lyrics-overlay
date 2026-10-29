@@ -1,7 +1,7 @@
-"""Inställningar som sparas till disk, plus var appens datamapp ligger.
+"""Settings persisted to disk, plus where the app's data folder lives.
 
-Datamappen (AppData) används för BÅDE settings.json och Spotify-token-cachen,
-så att en .exe kommer ihåg inloggning och inställningar mellan starter.
+The data folder (AppData) is used for BOTH settings.json and the Spotify token cache,
+so an .exe remembers the login and settings between launches.
 """
 
 import json
@@ -11,7 +11,7 @@ from PySide6.QtCore import QObject, QStandardPaths, Signal
 
 
 def app_data_dir():
-    """Stabil, skrivbar mapp för inställningar och token-cache. Skapas vid behov."""
+    """Stable, writable folder for settings and the token cache. Created if needed."""
     base = QStandardPaths.writableLocation(QStandardPaths.AppConfigLocation)
     if not base:
         base = os.path.join(os.path.expanduser("~"), ".spotify-lyrics-overlay")
@@ -23,26 +23,26 @@ def settings_path():
     return os.path.join(app_data_dir(), "settings.json")
 
 
-# Fält + standardvärden. Endast dessa nycklar sparas/läses.
+# Fields + default values. Only these keys are saved/loaded.
 DEFAULTS = {
     "font_size": 34,          # 14–96
     "text_color": "#FFFFFF",
     "outline_color": "#000000",
     "show_bg": True,
     "bg_opacity": 51,         # 0–100 %
-    "bg_fit_text": False,     # False = plattan är lika bred som fönstret,
-                              # True  = bredden krymper till den text som visas
+    "bg_fit_text": False,     # False = backdrop is as wide as the window,
+                              # True  = width shrinks to the text shown
     "show_next": True,
-    "line_gap": 18,           # 0–60 (radavstånd, skalas mot textstorleken)
-    "sync_offset": 0.0,       # sekunder, −3.0…+3.0
-    "pos_x": None,            # sparad fönsterposition (None = standard)
+    "line_gap": 18,           # 0–60 (line spacing, scaled to the text size)
+    "sync_offset": 0.0,       # seconds, −3.0…+3.0
+    "pos_x": None,            # saved window position (None = default)
     "pos_y": None,
-    "locked": False,          # lås position (drag av)
+    "locked": False,          # lock position (dragging disabled)
 }
 
 
 class Settings(QObject):
-    """Håller inställningarna. `changed` skickas när något ändras (för live-uppdatering)."""
+    """Holds the settings. `changed` is emitted when anything changes (for live updates)."""
 
     changed = Signal()
 
@@ -55,7 +55,7 @@ class Settings(QObject):
             setattr(self, key, value)
 
     def update(self, **changes):
-        """Sätt ett eller flera fält, spara, och meddela lyssnare — om något faktiskt ändrades."""
+        """Set one or more fields, save, and notify listeners — if anything actually changed."""
         changed = False
         for key, value in changes.items():
             if key in DEFAULTS and getattr(self, key) != value:
@@ -77,7 +77,7 @@ class Settings(QObject):
             with open(settings_path(), "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
         except OSError as exc:
-            print("Kunde inte spara inställningar:", exc)
+            print("Could not save settings:", exc)
 
     @classmethod
     def load(cls):

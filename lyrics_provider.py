@@ -1,13 +1,13 @@
-"""Hämtar tidssynkade låttexter (LRC) från det gratis API:t lrclib.net.
+"""Fetches time-synced lyrics (LRC) from the free lrclib.net API.
 
-Spotify ger inte ut låttexter via sitt API, så vi använder lrclib som källa.
+Spotify doesn't expose lyrics through its API, so we use lrclib as the source.
 """
 
 import re
 import requests
 
 try:
-    # Söker i flera texttjänster samtidigt (lrclib, NetEase, Musixmatch m.fl.)
+    # Searches several lyrics services at once (lrclib, NetEase, Musixmatch, etc.)
     import syncedlyrics
 except ImportError:
     syncedlyrics = None
@@ -15,12 +15,12 @@ except ImportError:
 LRCLIB = "https://lrclib.net/api"
 USER_AGENT = "spotify-lyrics-overlay (https://github.com/local/overlay)"
 
-# Matchar en tidsstämpel som [01:23.45] eller [01:23]
+# Matches a timestamp like [01:23.45] or [01:23]
 _TAG_RE = re.compile(r"\[(\d+):(\d+(?:\.\d+)?)\]")
 
 
 def parse_lrc(text):
-    """Gör om en LRC-sträng till en sorterad lista av (sekund, rad)."""
+    """Turns an LRC string into a sorted list of (seconds, line)."""
     out = []
     if not text:
         return out
@@ -42,7 +42,7 @@ class LyricsProvider:
         self._cache = {}
 
     def get_synced(self, title, artist, album, duration):
-        """Returnerar en LRC-sträng eller None om inget synkat hittas."""
+        """Returns an LRC string, or None if nothing synced is found."""
         key = (title.lower(), artist.lower(), round(duration))
         if key in self._cache:
             return self._cache[key]
@@ -53,16 +53,16 @@ class LyricsProvider:
     def _fetch(self, title, artist, album, duration):
         headers = {"User-Agent": USER_AGENT}
 
-        # 0) syncedlyrics – söker i FLERA tjänster på en gång (bäst täckning)
+        # 0) syncedlyrics – searches SEVERAL services at once (best coverage)
         if syncedlyrics is not None:
             try:
                 lrc = syncedlyrics.search(f"{title} {artist}")
-                if lrc and _TAG_RE.search(lrc):  # bara om den är tidssynkad
+                if lrc and _TAG_RE.search(lrc):  # only if it is time-synced
                     return lrc
-            except Exception:  # noqa: BLE001 - falla tillbaka på lrclib nedan
+            except Exception:  # noqa: BLE001 - fall back to lrclib below
                 pass
 
-        # 1) Exakt träff via /get (bäst om metadatan stämmer)
+        # 1) Exact match via /get (best when the metadata matches)
         try:
             r = requests.get(
                 f"{LRCLIB}/get",
@@ -82,7 +82,7 @@ class LyricsProvider:
         except requests.RequestException:
             pass
 
-        # 2) Fallback: sök och välj den som ligger närmast i längd
+        # 2) Fallback: search and pick the one closest in duration
         try:
             r = requests.get(
                 f"{LRCLIB}/search",

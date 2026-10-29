@@ -1,6 +1,6 @@
-"""Liten wrapper runt Spotifys Web API via spotipy.
+"""Small wrapper around Spotify's Web API via spotipy.
 
-Sköter inloggning (OAuth) och hämtar vad som spelas just nu.
+Handles login (OAuth) and fetches what's currently playing.
 """
 
 import os
@@ -16,8 +16,8 @@ SCOPE = "user-read-currently-playing user-read-playback-state"
 
 class SpotifyClient:
     def __init__(self):
-        # Token-cachen ligger i AppData (stabil plats) så inloggningen kommer ihåg
-        # även när appen körs som .exe (som annars kör i en temp-mapp).
+        # The token cache lives in AppData (a stable location) so the login is remembered
+        # even when the app runs as an .exe (which otherwise runs in a temp folder).
         cache_path = os.path.join(app_data_dir(), ".spotify_cache")
         self.sp = spotipy.Spotify(
             auth_manager=SpotifyOAuth(
@@ -28,14 +28,14 @@ class SpotifyClient:
                 cache_path=cache_path,
                 open_browser=True,
             ),
-            requests_timeout=10,  # ge Spotify mer tid vid segt nät
-            retries=3,            # försök igen automatiskt vid tillfälliga fel
+            requests_timeout=10,  # give Spotify more time on a slow network
+            retries=3,            # retry automatically on temporary errors
         )
 
     def current_playback(self):
-        """Returnerar Spotifys playback-dict, eller None vid fel/inget spelas."""
+        """Returns Spotify's playback dict, or None on error/nothing playing."""
         try:
             return self.sp.current_playback()
-        except Exception as exc:  # noqa: BLE001 - vi vill aldrig krascha overlayn
-            print("Spotify-fel:", exc)
+        except Exception as exc:  # noqa: BLE001 - we never want to crash the overlay
+            print("Spotify error:", exc)
             return None

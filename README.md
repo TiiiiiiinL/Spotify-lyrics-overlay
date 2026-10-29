@@ -1,146 +1,149 @@
 # 🎤 Spotify Lyrics Overlay
 
-En flytande, alltid-överst **undertext för Spotify** — som i en film. Texten
-ligger längst fram ovanpå alla fönster, byts rad-för-rad i takt med låten, och
-går att dra dit du vill med musen.
+A floating, always-on-top **subtitle for Spotify** — just like in a movie. The
+lyrics sit in front of every other window, change line by line in time with the
+song, and can be dragged anywhere with the mouse.
 
-![stil](https://img.shields.io/badge/stil-filmundertext-blue) källa: **lrclib.net** (gratis, synkade texter)
-
----
-
-## ⚠️ Viktigt: kör i Windows, inte i WSL
-
-Programmet ska rita ovanpå dina vanliga Windows-fönster. Därför måste det köras
-med **Windows-Python**, inte i WSL/Linux-terminalen. Stegen nedan är för Windows.
-
-> Filerna ligger i WSL. Öppna dem i Windows genom att klistra in detta i
-> Utforskarens adressfält: `\\wsl.localhost\Ubuntu\home\<user>\spotify-lyrics-overlay`
-> (byt `Ubuntu` mot ditt Linux-namn om det heter något annat). Kopiera gärna
-> mappen till t.ex. `Dokument` så blir det enklare.
+![style](https://img.shields.io/badge/style-movie%20subtitles-blue) source: **lrclib.net** (free, synced lyrics)
 
 ---
 
-## 1. Installera Python (om du inte har det)
+## ⚠️ Important: run it on Windows, not in WSL
 
-Ladda ner från <https://www.python.org/downloads/> och **kryssa i
-"Add Python to PATH"** under installationen.
+The program draws on top of your regular Windows windows. That means it must be
+run with **Windows Python**, not in WSL/the Linux terminal. The steps below are
+for Windows.
 
-## 2. Installera de delar programmet behöver
+> The files live in WSL. Open them in Windows by pasting this into the File
+> Explorer address bar: `\\wsl.localhost\Ubuntu\home\<user>\spotify-lyrics-overlay`
+> (replace `Ubuntu` with your Linux distro name if it's different). Copying the
+> folder to e.g. `Documents` makes things easier.
 
-Öppna **Kommandotolken** (sök "cmd" i Start), gå till mappen och kör:
+---
+
+## 1. Install Python (if you don't have it)
+
+Download it from <https://www.python.org/downloads/> and **check
+"Add Python to PATH"** during installation.
+
+## 2. Install the program's dependencies
+
+Open **Command Prompt** (search for "cmd" in Start), go to the folder and run:
 
 ```cmd
-cd "C:\sökväg\till\spotify-lyrics-overlay"
+cd "C:\path\to\spotify-lyrics-overlay"
 pip install -r requirements.txt
 ```
 
-## 3. Skapa en gratis Spotify-app (för att läsa vad som spelas)
+## 3. Create a free Spotify app (to read what's playing)
 
-1. Gå till <https://developer.spotify.com/dashboard> och logga in.
-2. Klicka **Create app**. Namn/beskrivning spelar ingen roll.
-3. I fältet **Redirect URI**, skriv exakt:
-   `http://127.0.0.1:8888/callback` och klicka **Add**, sedan **Save**.
-4. Öppna appen → **Settings**. Kopiera **Client ID** och **Client secret**.
+1. Go to <https://developer.spotify.com/dashboard> and log in.
+2. Click **Create app**. The name/description doesn't matter.
+3. In the **Redirect URI** field, enter exactly:
+   `http://127.0.0.1:8888/callback` and click **Add**, then **Save**.
+4. Open the app → **Settings**. Copy the **Client ID** and **Client secret**.
 
-## 4. Lägg in dina nycklar
+## 4. Add your keys
 
-Kopiera `config.example.py` → `config.py` och klistra in dina värden:
+Copy `config.example.py` → `config.py` and paste in your values:
 
 ```python
-CLIENT_ID = "ditt-client-id"
-CLIENT_SECRET = "ditt-client-secret"
+CLIENT_ID = "your-client-id"
+CLIENT_SECRET = "your-client-secret"
 REDIRECT_URI = "http://127.0.0.1:8888/callback"
 ```
 
-> 🔒 **Din `config.py` är privat.** Den ligger i `.gitignore` och laddas
-> aldrig upp till GitHub, eftersom den innehåller dina egna Spotify-nycklar.
-> Filen `.spotify_cache` (din inloggning) är också ignorerad. Ladda alltid
-> upp `config.example.py` – aldrig `config.py`.
+> 🔒 **Your `config.py` is private.** It's listed in `.gitignore` and is never
+> uploaded to GitHub, since it contains your own Spotify keys. The
+> `.spotify_cache` file (your login) is ignored too. Always upload
+> `config.example.py` – never `config.py`.
 
-## 5. Starta!
+## 5. Start it!
 
-Dubbelklicka på **`run.bat`**, eller kör i Kommandotolken:
+Double-click **`run.bat`**, or run this in Command Prompt:
 
 ```cmd
 python main.py
 ```
 
-Första gången öppnas en webbläsare där du loggar in på Spotify och godkänner.
-Sedan kommer du tillbaka automatiskt — det behövs bara en gång.
+The first time, a browser opens where you log in to Spotify and approve access.
+You're then redirected back automatically — this is only needed once.
 
-Spela en låt i Spotify, så dyker undertexten upp! 🎶
+Play a song in Spotify and the subtitles appear! 🎶
 
 ---
 
-## Använda overlayn
+## Using the overlay
 
-| Vad | Hur |
+| What | How |
 |-----|-----|
-| **Flytta** | Dra med vänster musknapp |
-| **Öppna inställningar** | Klicka på ikonen i aktivitetsfältet, eller högerklicka på texten → Inställningar |
-| **Större / mindre text** | Inställningar, eller `+` / `–` |
-| **Lås position** | Högerklicka på texten → Lås position |
-| **Avsluta** | Aktivitetsfält-ikon → Avsluta, högerklick → Avsluta, eller `Esc` |
+| **Move** | Drag with the left mouse button |
+| **Open settings** | Click the taskbar tray icon, or right-click the lyrics → Settings |
+| **Larger / smaller text** | Settings, or `+` / `–` |
+| **Lock position** | Right-click the lyrics → Lock position |
+| **Quit** | Tray icon → Quit, right-click → Quit, or `Esc` |
 
-## Inställningar
+## Settings
 
-Öppna inställningsfönstret via **aktivitetsfält-ikonen** (nere vid klockan) eller
-**högerklick på texten → Inställningar**. Allt ändras *live*:
+Open the settings window via the **tray icon** (down by the clock) or
+**right-click the lyrics → Settings**. Everything updates *live*:
 
-- **Textstorlek** och **textfärg / konturfärg**
-- **Bakgrund** på/av och hur **genomskinlig** den mörka plattan är
-- **Visa kommande rad** på/av och **radavstånd**
-- **Synk-justering** — skjut texten några tiondels sekunder fram/bak om den
-  ligger före/efter låten (`+` = texten byts tidigare)
+- **Text size** and **text color / outline color**
+- **Background** on/off and how **transparent** the dark backdrop is
+- **Show upcoming line** on/off and **line spacing**
+- **Sync offset** — shift the lyrics a few tenths of a second forward/back if
+  they run ahead of or behind the song (`+` = lines change earlier)
 
-Alla inställningar och fönstrets position **sparas automatiskt** och finns kvar
-till nästa gång. De ligger i `settings.json` i appens datamapp
+All settings and the window position are **saved automatically** and kept until
+next time. They're stored in `settings.json` in the app's data folder
 (`…\AppData\Local\SpotifyLyricsOverlay`).
 
-## Aktivitetsfältet
+## System tray
 
-Appen lägger en liten ikon nere vid klockan. **Klicka** på den för att öppna
-inställningar, eller **högerklicka** för menyn (Inställningar / Avsluta). Appen
-lever kvar där även om du stänger inställningsfönstret.
+The app puts a small icon down by the clock. **Click** it to open settings, or
+**right-click** it for the menu (Settings / Quit). The app keeps running there
+even if you close the settings window.
 
-## Bygga en app-fil (.exe)
+## Building an app file (.exe)
 
-Vill du slippa cmd/Python helt och få en dubbelklickbar app?
+Want to skip cmd/Python entirely and get a double-clickable app?
 
-1. Dubbelklicka på **`build.bat`** (eller kör den i cmd).
-2. Vänta medan den bygger — det tar någon minut.
-3. Din färdiga app ligger sedan i mappen **`dist\SpotifyLyricsOverlay.exe`**.
+1. Double-click **`build.bat`** (or run it in cmd).
+2. Wait while it builds — it takes a minute or so.
+3. Your finished app will be in **`dist\SpotifyLyricsOverlay.exe`**.
 
-Den filen innehåller allt (kod + Python + byggdelar), så den går att flytta vart
-du vill och starta med ett dubbelklick. Inloggningen och inställningarna sparas i
-`AppData`, så de finns kvar mellan starter.
+That file contains everything (code + Python + dependencies), so you can move it
+anywhere and launch it with a double-click. Your login and settings are stored
+in `AppData`, so they persist between launches.
 
-> 🔒 Obs: dina Spotify-nycklar bakas in i `.exe`-filen. Det är okej för personligt
-> bruk, men dela inte filen offentligt.
+> 🔒 Note: your Spotify keys are baked into the `.exe` file. That's fine for
+> personal use, but don't share the file publicly.
 >
-> 🐞 Eftersom `.exe`:n körs utan konsol skrivs statusmeddelanden till
-> `…\AppData\Local\SpotifyLyricsOverlay\log.txt` — kika där om något strular.
+> 🐞 Since the `.exe` runs without a console, status messages are written to
+> `…\AppData\Local\SpotifyLyricsOverlay\log.txt` — check there if something
+> goes wrong.
 
 ---
 
-## Vanliga problem
+## Troubleshooting
 
-- **"Ingen synkad text hittades"** — låten saknas på lrclib.net, eller har bara
-  oickad text. Vanligt med väldigt nya eller obskyra låtar.
-- **Inget händer** — kollar Spotify verkligen att en låt *spelas* (inte pausad)?
-  Web API:t rapporterar bara aktiv uppspelning.
-- **Texten ligger lite efter/före** — overlayn synkar om var ~2 sek mot Spotify.
-  Små avvikelser kan bero på Spotifys egen fördröjning.
-- **Inloggningsfönstret kommer inte tillbaka** — kontrollera att Redirect URI i
-  Spotify-appen är *exakt* `http://127.0.0.1:8888/callback`.
+- **"No synced lyrics found"** — the song is missing from lrclib.net, or only
+  has unsynced lyrics. Common for very new or obscure songs.
+- **Nothing happens** — is Spotify actually *playing* a song (not paused)?
+  The Web API only reports active playback.
+- **Lyrics are slightly behind/ahead** — the overlay re-syncs with Spotify
+  every ~2 seconds. Small offsets can come from Spotify's own latency. You can
+  also adjust the sync offset in Settings.
+- **The login window never redirects back** — make sure the Redirect URI in
+  your Spotify app is *exactly* `http://127.0.0.1:8888/callback`.
 
 ---
 
-## Hur det fungerar (kort)
+## How it works (briefly)
 
 ```
-Spotify Web API  ──►  vad spelas + position (var 2:a sek)
-lrclib.net       ──►  tidssynkad text (LRC) för låten
-main.py          ──►  räknar ut vilken rad just nu (interpolerar mellan polls)
-overlay.py       ──►  ritar raden, ramlöst/genomskinligt/alltid överst
+Spotify Web API  ──►  what's playing + position (every 2 sec)
+lrclib.net       ──►  time-synced lyrics (LRC) for the song
+main.py          ──►  works out the current line (interpolates between polls)
+overlay.py       ──►  draws the line, borderless/transparent/always on top
 ```

@@ -1,7 +1,7 @@
-"""Det flytande, alltid-överst, genomskinliga undertext-fönstret.
+"""The floating, always-on-top, transparent subtitle window.
 
-Allt utseende styrs av `settings` (se settings.py) och uppdateras live när
-inställningarna ändras.
+All appearance is driven by `settings` (see settings.py) and updates live when
+the settings change.
 """
 
 from PySide6.QtCore import Qt, QRect
@@ -15,7 +15,7 @@ class OverlayWindow(QWidget):
         self.settings = settings
         self.on_open_settings = on_open_settings
 
-        # Ramlöst, alltid överst, syns inte i aktivitetsfältet
+        # Frameless, always on top, not shown in the taskbar
         self.setWindowFlags(
             Qt.FramelessWindowHint
             | Qt.WindowStaysOnTopHint
@@ -26,8 +26,8 @@ class OverlayWindow(QWidget):
 
         self.current_line = ""
         self.next_line = ""
-        # Latinska tecken via Segoe UI, kinesiska (förenklat OCH traditionellt)
-        # via samma YaHei/JhengHei → jämn tjocklek överallt.
+        # Latin characters via Segoe UI, Chinese (simplified AND traditional)
+        # via YaHei/JhengHei → consistent stroke weight everywhere.
         self.font_families = [
             "Segoe UI",
             "Microsoft YaHei UI",
@@ -36,7 +36,7 @@ class OverlayWindow(QWidget):
         ]
         self._drag_offset = None
 
-        # Storlek + placering (återställ sparad position om den finns)
+        # Size + placement (restore saved position if there is one)
         screen = QApplication.primaryScreen().availableGeometry()
         width = min(int(screen.width() * 0.8), 1100)
         height = 170
@@ -47,10 +47,10 @@ class OverlayWindow(QWidget):
             y = screen.y() + screen.height() - height - 70
         self.setGeometry(x, y, width, height)
 
-        # Rita om live när inställningarna ändras
+        # Repaint live when settings change
         settings.changed.connect(self.update)
 
-    # ---- Innehåll -------------------------------------------------------
+    # ---- Content --------------------------------------------------------
 
     def set_lines(self, current, nxt):
         if current == self.current_line and nxt == self.next_line:
@@ -59,7 +59,7 @@ class OverlayWindow(QWidget):
         self.next_line = nxt
         self.update()
 
-    # ---- Ritning --------------------------------------------------------
+    # ---- Painting -------------------------------------------------------
 
     def _make_font(self, size):
         font = QFont()
@@ -69,14 +69,14 @@ class OverlayWindow(QWidget):
         return font
 
     def _text_rect(self, font, width, text, flags):
-        """Hur stor plats texten faktiskt tar (efter radbrytning) inom `width`."""
+        """How much space the text actually takes (after word wrap) within `width`."""
         metrics = QFontMetrics(font)
         rect = QRect(0, 0, width, 100000)
         return metrics.boundingRect(rect, flags, text)
 
     def paintEvent(self, _event):
         if not self.current_line and not self.next_line:
-            return  # helt genomskinligt när inget visas
+            return  # fully transparent when nothing is shown
 
         s = self.settings
         painter = QPainter(self)
@@ -102,16 +102,16 @@ class OverlayWindow(QWidget):
 
         content_h = main_h + (gap + next_h if show_next else 0)
         total_h = content_h + 2 * pad_v
-        top = (self.height() - total_h) // 2  # centrera lodrätt i fönstret
+        top = (self.height() - total_h) // 2  # center vertically in the window
 
-        # Bakgrundsplatta. Höjden följer alltid texten; bredden beror på
-        # inställningen bg_fit_text (hela fönstret, eller krymp till texten).
+        # Background backdrop. Height always follows the text; width depends on
+        # the bg_fit_text setting (full window, or shrink to the text).
         if s.show_bg:
             if s.bg_fit_text:
                 pad_h = max(8, int(s.font_size * 0.45))
                 text_w = max(main_rect_size.width(), next_rect_size.width())
                 bg_w = min(self.width(), text_w + 2 * pad_h)
-                bg_x = (self.width() - bg_w) // 2  # texten är centrerad, så plattan med
+                bg_x = (self.width() - bg_w) // 2  # text is centered, so the backdrop is too
             else:
                 bg_x, bg_w = 0, self.width()
             alpha = round(255 * s.bg_opacity / 100)
@@ -137,7 +137,7 @@ class OverlayWindow(QWidget):
                                 next_color, next_outline, 1, flags)
 
     def _draw_outlined(self, painter, rect, text, font, fill, outline, width, flags):
-        """Ritar text med kontur (kopior i alla riktningar) — filmlook."""
+        """Draws text with an outline (copies in every direction) — movie look."""
         if not text:
             return
         painter.setFont(font)
@@ -150,7 +150,7 @@ class OverlayWindow(QWidget):
         painter.setPen(fill)
         painter.drawText(rect, flags, text)
 
-    # ---- Dra fönstret med musen -----------------------------------------
+    # ---- Drag the window with the mouse ---------------------------------
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton and not self.settings.locked:
@@ -166,20 +166,20 @@ class OverlayWindow(QWidget):
         if self._drag_offset is not None:
             self._drag_offset = None
             pos = self.pos()
-            self.settings.update(pos_x=pos.x(), pos_y=pos.y())  # spara position
+            self.settings.update(pos_x=pos.x(), pos_y=pos.y())  # save position
 
-    # ---- Högerklicksmeny ------------------------------------------------
+    # ---- Right-click menu -----------------------------------------------
 
     def contextMenuEvent(self, event):
         menu = QMenu(self)
         if self.on_open_settings:
-            menu.addAction("Inställningar…", self.on_open_settings)
-        lock = menu.addAction("Lås position")
+            menu.addAction("Settings…", self.on_open_settings)
+        lock = menu.addAction("Lock position")
         lock.setCheckable(True)
         lock.setChecked(self.settings.locked)
         lock.toggled.connect(lambda v: self.settings.update(locked=v))
         menu.addSeparator()
-        menu.addAction("Avsluta", QApplication.quit)
+        menu.addAction("Quit", QApplication.quit)
         menu.exec(event.globalPos())
 
     def keyPressEvent(self, event):

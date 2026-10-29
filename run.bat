@@ -1,5 +1,5 @@
 @echo off
-REM Dubbelklicka denna fil i Windows for att starta overlayn.
+REM Double-click this file in Windows to start the overlay.
 cd /d "%~dp0"
 python main.py
 pause

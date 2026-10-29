@@ -1,15 +1,15 @@
 @echo off
-REM Bygger en fristaende .exe. Dubbelklicka denna fil i Windows,
-REM eller kor den i cmd:  build.bat
+REM Builds a standalone .exe. Double-click this file in Windows,
+REM or run it in cmd:  build.bat
 cd /d "%~dp0"
 
-echo === Installerar byggverktyg (PyInstaller) ===
+echo === Installing build tools (PyInstaller) ===
 pip install -r requirements.txt
 
-echo === Skapar app-ikon ===
+echo === Creating app icon ===
 python make_icon.py
 
-echo === Bygger .exe ===
+echo === Building .exe ===
 if exist app.ico (
     pyinstaller --noconfirm --windowed --onefile --name "SpotifyLyricsOverlay" --icon app.ico main.py
 ) else (
@@ -17,7 +17,7 @@ if exist app.ico (
 )
 
 echo.
-echo === Klart! Din app finns har: ===
+echo === Done! Your app is here: ===
 echo    dist\SpotifyLyricsOverlay.exe
 echo.
 pause

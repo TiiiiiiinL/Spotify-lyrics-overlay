@@ -1,23 +1,23 @@
-"""Ritar appens ikon i kod. Återanvänds av både tray-ikonen och .exe-bygget.
+"""Draws the app icon in code. Reused by both the tray icon and the .exe build.
 
-Ikonen är en musikskiva i Minecraft-stil: handritad 16x16 pixelkonst med svart
-kontur, ljusare ovansida/vänster och mörkare undersida/höger.
+The icon is a Minecraft-style music disc: hand-drawn 16x16 pixel art with a black
+outline, a lighter top/left side and a darker bottom/right side.
 """
 
 from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 from PySide6.QtCore import Qt
 
-# Paletten. Nycklarna används i PIXELS nedan.
+# The palette. The keys are used in PIXELS below.
 PALETTE = {
-    "K": "#12101a",  # kontur, nästan svart
-    "M": "#4f4b5c",  # skivans ljusa sida (uppe/vänster)
-    "D": "#2b2833",  # skivans mörka sida (nere/höger)
-    "W": "#7d7891",  # glansreflex
-    "G": "#1DB954",  # Spotify-grön etikett
-    "L": "#3ee87a",  # ljus grön highlight på etiketten
+    "K": "#12101a",  # outline, almost black
+    "M": "#4f4b5c",  # light side of the disc (top/left)
+    "D": "#2b2833",  # dark side of the disc (bottom/right)
+    "W": "#7d7891",  # glossy highlight
+    "G": "#1DB954",  # Spotify-green label
+    "L": "#3ee87a",  # light green highlight on the label
 }
 
-# 16x16 rutnät. "." = genomskinlig.
+# 16x16 grid. "." = transparent.
 PIXELS = [
     "................",
     ".....KKKKKK.....",
@@ -41,13 +41,13 @@ GRID = len(PIXELS)
 
 
 def render_pixmap(size):
-    """Ritar pixelkonsten skalad till `size`. Kanterna snappas till hela pixlar
-    så att rutorna aldrig glappar eller blir suddiga."""
+    """Draws the pixel art scaled to `size`. Edges snap to whole pixels
+    so the squares never leave gaps or get blurry."""
     pixmap = QPixmap(size, size)
     pixmap.fill(Qt.transparent)
 
     painter = QPainter(pixmap)
-    painter.setPen(Qt.NoPen)  # ingen antialiasing – vi vill ha skarpa rutor
+    painter.setPen(Qt.NoPen)  # no antialiasing – we want crisp squares
 
     def edge(index):
         return round(index * size / GRID)
@@ -65,7 +65,7 @@ def render_pixmap(size):
 
 
 def app_qicon():
-    """QIcon med flera storlekar (skarp både liten och stor)."""
+    """QIcon with several sizes (crisp both small and large)."""
     icon = QIcon()
     for size in (16, 32, 48, 256):
         icon.addPixmap(render_pixmap(size))
